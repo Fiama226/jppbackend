@@ -1,0 +1,8 @@
+runtime: nodejs20
+
+handlers:
+  - url: /images
+    static_dir: Images
+
+  - url: /.*
+    script: auto
