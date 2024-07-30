@@ -5,7 +5,10 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 const { Pool } = require('pg');
 const multer = require('multer');
-const { Storage } = require("@google-cloud/storage");
+const cloudinary = require('cloudinary').v2;
+cloudinary.config({
+  secure: true
+});
 require('dotenv').config()
 //const ADD_Product_Backend=require('./Add_Product_Backend')
 const { Connector } = require('@google-cloud/cloud-sql-connector');
@@ -134,31 +137,8 @@ app.post('/addProduct',upload.single("file"),function (req, res,next){
   console.log(req.body)
   console.log(req.file)
   pool.query('INSERT INTO products(name,price,image_source,brand,type,Description) VALUES($1,$2,$3,$4,$5,$6)',[req.body.name, req.body.price,req.body.image,req.body.brand,req.body.type,req.body.description])
-  const storage = new Storage({
-    keyFilename:"./GCP.json",
-    projectId: "backendproject-429101",
 
-  })
-  const bucket = storage.bucket("landry_files")
-  try{
-    if (!req.file) {
-      return res.status(400).send({ message: "Please upload a file!" });
-    }
-    const blob = bucket.file(`Images/Images/products_image/${req.file.originalname}`);
-    const blobStream = blob.createWriteStream({
-      resumable: false,
-    });
-    blobStream.on("error", (err) => {
-      res.status(500).send({ message: err.message });
-    });
-    res.status(200).send({
-      message: "Uploaded the file successfully: " + req.file.originalname,     
-    });
- 
-  blobStream.end(req.file.buffer);
-} catch (err) {
-  console.error('Error uploading file:', err);}
-  },
+}
 )
 
 
