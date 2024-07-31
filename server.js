@@ -20,13 +20,6 @@ app.use(cors());
 app.use(bodyParser.json())
 app.use(pdf);
 const upload = multer({ storage: multer.memoryStorage()})
-const connector = new Connector();
-const clientOptsfunction = async ()=>{ await connector.getOptions({
-  instanceConnectionName: process.env.INSTANCE_CONNECTION_NAME,
-  authType: 'IAM'
-});
-}
-const clientOpts=clientOptsfunction()
 
 
 const pool = new Pool({
@@ -34,7 +27,10 @@ const pool = new Pool({
   host:process.env.DB_HOST,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
-  port:5432
+  port:5432,
+  ssl: {
+    require: true,
+  }
 });
 
 pool.connect((err, client, done) => {
