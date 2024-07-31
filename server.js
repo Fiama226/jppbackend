@@ -22,11 +22,12 @@ app.use(pdf);
 const upload = multer({ storage: multer.memoryStorage()})
 const connector = new Connector();
 const clientOptsfunction = async ()=>{ await connector.getOptions({
-    instanceConnectionName: process.env.INSTANCE_CONNECTION_NAME,
-    authType: 'IAM'
+  instanceConnectionName: process.env.INSTANCE_CONNECTION_NAME,
+  authType: 'IAM'
 });
 }
 const clientOpts=clientOptsfunction()
+
 
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -36,12 +37,15 @@ const pool = new Pool({
   port:5432
 });
 
+pool.connect((err, client, done) => {
+  if (err) {
+      console.error('Error connecting to PostgreSQL:', err);
+  } else {
+      console.log('Connected to PostgreSQL database');
+  }
+  done})
 
 
-localStorage.setItem('myKey', 'KABORE Pawendtaore landry');
-//console.log("the module imported is:",localStorage)
-const value = localStorage.getItem('myKey');
-console.log(value);
 
 
 
@@ -58,20 +62,6 @@ app.get('/',(req, res) => {
   //port: 5432,
   //database: 'postgres',
 //})
-
-
-var chekifconnected="";
-pool.connect((err, client, done) => {
-  if (err) {
-      console.error('Error connecting to PostgreSQL:,', err);
-      chekifconnected=err
-  } else {
-      console.log('Connected to PostgreSQL database');
-  }
-  done();
-});
-
-
 
 app.get('/commandes',(req, res) => { 
   pool.query(' SELECT * FROM commandes').then((result) => {
