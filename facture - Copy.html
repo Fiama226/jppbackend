@@ -129,20 +129,21 @@ th {
         </div>
     </div>
 </body>
-<script src="https://unpkg.com/json5@2/dist/index.min.js"></script>
+
 <script  >
-const urlParams = new URLSearchParams(window.location.search);
-const dataValue = JSON5.parse( urlParams.get('data') );
-console.log("the paramValue is:",dataValue);
-console.log("the type of dataValue is:",typeof(dataValue));
+   // const data = [{"name":"NAOMI%20TWIST","price":"2%20750","image_source":"NAOMI_TWIST.png","prices":null,"quantity":3}%27,%20%27{"name":"KIRA","price":"2750","image_source":"Kira.png","prices":5500,"quantity":2}%27]0:%20"{\"name\":\"NAOMI%20TWIST\",\"price\":\"2%20750\",\"image_source\":\"NAOMI_TWIST.png\",\"prices\":null,\"quantity\":3}"1:%20"{\"name\":\"KIRA\",\"price\":\"2750\",\"image_source\":\"Kira.png\",\"prices\":5500,\"quantity\":2}]
+    axios.get(" https://jppbackend.onrender.com/printCommande").then(response => {
    // console.log(response.data)
-    document.getElementById('nomduclient').textContent =dataValue[0].nomduclient
-    document.getElementById('numero_du_client').textContent =dataValue[0].numerodetelephoneduclient
-    document.getElementById('ville_du_client').textContent =dataValue[0].villeduclient
-    document.getElementById('numerodefacture').textContent =dataValue[0].numerodefacture
-   const data = dataValue[0].detailsdelafacture
+    document.getElementById('nomduclient').textContent =response.data[0].nomduclient
+    document.getElementById('numero_du_client').textContent =response.data[0].numerodetelephoneduclient
+    document.getElementById('ville_du_client').textContent =response.data[0].villeduclient
+    document.getElementById('numerodefacture').textContent =response.data[0].numerodefacture
+
+
+    
+    //console.log("details de la facture est:",JSON.parse(response.data[0].detailsdelafacture[0]))
+   const data = response.data[0].detailsdelafacture
    console.log("the data received is",data)
-   const tableBody = document.getElementById('invoice-table');
     const rows = data.map(item => {
         const rowData=JSON.parse(item)
         console.log("the row data is ",rowData.name)
@@ -172,6 +173,10 @@ console.log("the type of dataValue is:",typeof(dataValue));
   // Return the row in case it's needed
   return row;
 });
+
+}).catch(error => {console.error('Error fetching data:', error);});
+
+  
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     const currentDate = new Date().toLocaleDateString('fr-FR', options);
     console.log(currentDate);
@@ -181,5 +186,53 @@ console.log("the type of dataValue is:",typeof(dataValue));
     const minutes = now.getMinutes();
     const currentTime = `${hours}:${minutes}mn`;
     document.getElementById('heure_minute').innerHTML = currentTime;
+
+ /*   const data = [
+  { article:"Outre", quantite: 100 , prix_unitaire: 1150 , total: 115000},
+  { article:"Amaka", quantite: 5 , prix_unitaire: 1600 , total: 8000},
+  { article:"Daniela", quantite: 5 , prix_unitaire: 1600 , total: 8000},
+  { article:"Peruque", quantite: 2 , prix_unitaire: 1500 , total: 3000},
+  { article:"Razor cut", quantite: 4 , prix_unitaire: 1250 , total: 5000},
+  { article:"meche boucle", quantite: 10 , prix_unitaire: 1050 , total: 10500},
+  { article:"Louisa", quantite: 10 , prix_unitaire: 2750 , total: 27500},
+  { article:"Calypso", quantite: 3 , prix_unitaire: 1750 , total: 5250},
+];
+*/
+// Select the table body where rows will be inserted
+const tableBody = document.getElementById('invoice-table');
+
+// Map over the data array and create rows
+const rows = data.map(item => {
+  // Create a new row element
+  const row = document.createElement('tr');
+
+  // Create cells for each property in the object
+  const articleCell = document.createElement('td');
+  articleCell.textContent = item.name;
+  row.appendChild(articleCell);
+
+  const quantiteCell = document.createElement('td');
+  quantiteCell.textContent = item.quantity + " pcs";
+  row.appendChild(quantiteCell);
+
+  const prix_unitaireCell = document.createElement('td');
+  prix_unitaireCell.textContent = item.price + " FCFA";
+  row.appendChild(prix_unitaireCell);
+  
+  const totalCell = document.createElement('td');
+  totalCell.textContent = item.prices + " FCFA";
+  row.appendChild(totalCell);
+
+  // Append the row to the table body
+  tableBody.appendChild(row);
+
+  // Return the row in case it's needed
+  return row;
+});
+
+
+
+
+
 </script>
 </html>

@@ -1,5 +1,5 @@
 const express = require('express')
-const { localStorage } = require("./local_storage_config");
+const path = require('path')
 pdf = require('express-pdf');
 const puppeteer = require('puppeteer');
 const fs = require('fs');
@@ -20,8 +20,6 @@ app.use(cors());
 app.use(bodyParser.json())
 app.use(pdf);
 const upload = multer({ storage: multer.memoryStorage()})
-
-
 const pool = new Pool({
   user: process.env.DB_USER,
   host:process.env.DB_HOST,
@@ -73,12 +71,14 @@ app.get('/commandes',(req, res) => {
 app.get('/printCommande',(req, res) => { 
   pool.query(' SELECT * FROM commandes WHERE nomduclient = $1',["Lionnelle"]).then((result) => {
     res.status(200).send(result.rows)
+    console.log("the searched data on db is:",result.rows)
 
   })
   .catch((error) => {
     console.error('Error executing query:', error);
     res.status(500).send('Error executing query, check if connected is:', error);
   });
+  console.log("the parameters sent are:",req.query)
 })
 
 app.get('/home',(req, res) => { 
@@ -140,23 +140,59 @@ app.delete('/deleteProduct/:nom', (req, res)=>{
 })
 
 app.get('/printpdf', async (req, res)=>{
-  async function generatePDF() {
+  const dataOfReceipt=req.query.data
+  
+  pool.query(' SELECT * FROM commandes WHERE nomduclient = $1',[dataOfReceipt]).then((result) => {
+    console.log("the searched data on db is:",result.rows)
+    const dataFromDataBase=result.rows
+
+    async function generatePDF() {
+      console.log("the value of dataFromDataBase",dataFromDataBase)
     const browser = await puppeteer.launch({headless: true, args: ['--no-sandbox']});
     const page = await browser.newPage();
-    const htmlContent = fs.readFileSync('./facture.html', 'utf8');
+
+    //const htmlContent = fs.readFileSync('./facture.html?data=dataFromDataBase', 'utf8');
     //await page.setContent(htmlContent,{waitUntilDone: true});
-    await page.setContent(htmlContent,{waitUntil: 'networkidle0'});
-    await new Promise(resolve => setTimeout(resolve, 5000));
-    await page.pdf({ path: 'output.pdf', format: 'A4' });
+    //await page.setContent(htmlContent,{waitUntil: 'networkidle0'});
+   // const filePath = path.resolve(__dirname, './facture.html');
+
+    //await page.goto(`file://${filePath}?data=${dataFromDataBase}`, { waitUntil: 'networkidle0' });
+
+    await page.goto(`https://fiama226.github.io/receipt_static_website/?data=${JSON.stringify(dataFromDataBase)}`, { waitUntil: 'networkidle0' });
+    console.log("the link to the static website is :",`https://fiama226.github.io/receipt_static_website/?data=${JSON.stringify(dataFromDataBase)}`)
+
+    
+
+    //await new Promise(resolve => setTimeout(resolve, 5000));
+    const generatedPdf = await page.pdf({ path: 'output.pdf', format: 'A4',printBackground: true });
     await browser.close();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="generated.pdf"');
+    res.send(generatedPdf);
+    
   }
+  generatePDF()
   
-  generatePDF();
-  //res.download("./output.pdf")
-  var data =fs.readFileSync('output.pdf');
-res.contentType("application/pdf");
-res.contentType("application/pdf");
-res.send(data);
+
+
+
+
+
+  })
+  .catch((error) => {
+    console.error('Error executing query:', error);
+    res.status(500).send('Error executing query, check if connected is:', error);
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  console.log("the params are:",dataOfReceipt)
+  //var data =fs.readFileSync('output.pdf');
+//res.contentType("application/pdf");
+//res.send(data);
+//res.send("it's done");
+  
+    
+
 
 console.log("printpdf hitted")
 })
