@@ -36,6 +36,7 @@ pool.connect((err, client, done) => {
       console.error('Error connecting to PostgreSQL:', err);
   } else {
       console.log('Connected to PostgreSQL database');
+      console.log(require('puppeteer').executablePath())
   }
   done})
 
