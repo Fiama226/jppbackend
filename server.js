@@ -36,7 +36,6 @@ pool.connect((err, client, done) => {
       console.error('Error connecting to PostgreSQL:', err);
   } else {
       console.log('Connected to PostgreSQL database');
-      console.log(require('puppeteer').executablePath())
   }
   done})
 
@@ -149,7 +148,18 @@ app.get('/printpdf', async (req, res)=>{
 
     async function generatePDF() {
       console.log("the value of dataFromDataBase",dataFromDataBase)
-    const browser = await puppeteer.launch({headless: true, args: ['--no-sandbox']});
+      const browser = await puppeteer.launch({
+        args: [
+          "--disable-setuid-sandbox",
+          "--no-sandbox",
+          "--single-process",
+          "--no-zygote",
+        ],
+        executablePath:
+          process.env.NODE_ENV === "production"
+            ? process.env.PUPPETEER_EXECUTABLE_PATH
+            : puppeteer.executablePath(),
+      });
     const page = await browser.newPage();
 
     //const htmlContent = fs.readFileSync('./facture.html?data=dataFromDataBase', 'utf8');
