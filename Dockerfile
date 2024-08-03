@@ -1,5 +1,6 @@
+FROM alpine:3.19
+ENV NODE_VERSION 22.5.1
 FROM ghcr.io/puppeteer/puppeteer:22.13.1
-FROM node:18.17.1-alpine
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
 WORKDIR /usr/src/app
