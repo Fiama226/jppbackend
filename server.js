@@ -119,10 +119,22 @@ app.post('/commandes', (req, res)=>{
     }
 })
 
-app.post('/addProduct',upload.single("file"),function (req, res,next){
+app.post('/addProduct',upload.single("file"),async function (req, res,next){
   console.log(req.body)
   console.log(req.file)
   pool.query('INSERT INTO products(name,price,image_source,brand,type,Description) VALUES($1,$2,$3,$4,$5,$6)',[req.body.name, req.body.price,req.body.image,req.body.brand,req.body.type,req.body.description])
+  try {
+    
+    cloudinary.v2.uploader.upload(req.file.path , {
+    asset_folder: 'products_image',
+    resource_type: 'image'})
+  .then(console.log);
+    // Send the Cloudinary URL in the response
+    res.json({ imageUrl: result.secure_url });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error uploading image to Cloudinary' });
+  }
 
 }
 )
@@ -196,15 +208,7 @@ app.get('/printpdf', async (req, res)=>{
   });
 
   await new Promise(resolve => setTimeout(resolve, 2000));
-  console.log("the params are:",dataOfReceipt)
-  //var data =fs.readFileSync('output.pdf');
-//res.contentType("application/pdf");
-//res.send(data);
-//res.send("it's done");
-  
-    
-
-
+  console.log("the params are:",dataOfReceipt)    
 console.log("printpdf hitted")
 })
 
