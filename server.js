@@ -22,7 +22,8 @@ const app = express()
 app.use(cors());
 app.use(bodyParser.json())
 app.use(pdf);
-const upload = multer({ storage: multer.memoryStorage()})
+const storage = multer.memoryStorage() 
+const upload = multer({ storage: storage})
 const pool = new Pool({
   user: process.env.DB_USER,
   host:process.env.DB_HOST,
@@ -123,8 +124,9 @@ app.post('/commandes', (req, res)=>{
 })
 
 app.post('/addProduct',upload.single("file"),async function (req, res,next){
-  //console.log(req.body)
-  console.log("the path is :",req._parts[0].file)
+  console.log("req.body is :",req.body)
+  console.log("req.file.path is :",req.file.path)
+  console.log("req is :",req)
   pool.query('INSERT INTO products(name,price,image_source,brand,type,Description) VALUES($1,$2,$3,$4,$5,$6)',[req.body.name, req.body.price,req.body.image,req.body.brand,req.body.type,req.body.description])
   try {
     
