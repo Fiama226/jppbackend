@@ -123,8 +123,8 @@ app.post('/commandes', (req, res)=>{
 })
 
 app.post('/addProduct',upload.single("file"),async function (req, res,next){
-  console.log(req.body)
-  console.log(req.file)
+  //console.log(req.body)
+  console.log("the path is :",req._parts[0].file)
   pool.query('INSERT INTO products(name,price,image_source,brand,type,Description) VALUES($1,$2,$3,$4,$5,$6)',[req.body.name, req.body.price,req.body.image,req.body.brand,req.body.type,req.body.description])
   try {
     
