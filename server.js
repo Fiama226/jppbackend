@@ -125,7 +125,7 @@ app.post('/addProduct',upload.single("file"),async function (req, res,next){
   pool.query('INSERT INTO products(name,price,image_source,brand,type,Description) VALUES($1,$2,$3,$4,$5,$6)',[req.body.name, req.body.price,req.body.image,req.body.brand,req.body.type,req.body.description])
   try {
     
-    cloudinary.uploader.upload(req.file.path , {
+    cloudinary.uploader.upload(req.file, {
     asset_folder: 'products_image',
     resource_type: 'image'})
   .then(console.log);
