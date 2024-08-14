@@ -8,9 +8,9 @@ const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 cloudinary.config({
   secure: true,
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: "dxvnon94f",
+  api_key: "961335227687848",
+  api_secret: "45StJjLMuUwWFMwvCh2sxyj6Mb4",
 });
 require('dotenv').config()
 //const ADD_Product_Backend=require('./Add_Product_Backend')
@@ -20,19 +20,21 @@ const PORT = process.env.PORT || 8080
 const bodyParser = require('body-parser');
 const app = express()
 app.use(cors());
-app.use(bodyParser.json())
+app.use(express.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 app.use(pdf);
 const storage = multer.memoryStorage() 
-const upload = multer({ storage: storage})
+const upload = multer()
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host:process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port:5432,
-  ssl: {
-    require: true,
-  }
+ // user: process.env.DB_USER,
+  //host:process.env.DB_HOST,
+  //database: process.env.DB_NAME,
+  //password: process.env.DB_PASSWORD,
+ // port:5432,
+ // ssl: {
+  //  require: true,
+ // }
+ connectionString : "postgresql://neondb_owner:TFxSCge39yjn@ep-polished-band-a57e0mxg.us-east-2.aws.neon.tech/neondb?sslmode=require"
 });
 
 pool.connect((err, client, done) => {
@@ -114,28 +116,25 @@ app.post('/Add_Loan_Today', (req, res)=>{
 })
 
 app.post('/commandes', (req, res)=>{
-  res.send(req.body)
+  console.log(req.body)
+
   try {
-  pool.query('INSERT INTO commandes(nomduclient,numerodefacture,date,modedepayement,montantdelacommande,villeduclient,numerodetelephoneduclient,detailsdelafacture) VALUES($1, $2,$3, $4,$5, $6,$7, $8)',[req.body.nom,req.body.numerodefacture,req.body.dateAndTime,req.body.modedepayment,req.body.totalamountoforder,req.body.ville,req.body.numero,req.body.cart_products])
+  pool.query('INSERT INTO commandes(nomduclient,numerodefacture,date,modedepayement,montantdelacommande,villeduclient,numerodetelephoneduclient,detailsdelafacture) VALUES($1, $2,$3, $4,$5, $6,$7, $8)',[req.body.nom,req.body.numerodefacture,req.body.dateAndTime,req.body.modedepayment,req.body.totalamountoforder,req.body.ville,req.body.numero,req.body.cart_products]).then(result=>{console.log(result),res.send(req.body)})
      }catch (error) {
       console.error('Error executing query:', error);
       res.status(500).send('Erreur lors de l\'insertion de la commande'); // Respond with an error message
     }
 })
 
-app.post('/addProduct',upload.single("file"),async function (req, res,next){
-  console.log("req.body is :",req.body)
-  console.log("req.file.path is :",req.file.path)
-  console.log("req is :",req)
-  pool.query('INSERT INTO products(name,price,image_source,brand,type,Description) VALUES($1,$2,$3,$4,$5,$6)',[req.body.name, req.body.price,req.body.image,req.body.brand,req.body.type,req.body.description])
+app.post('/addProduct', upload.none(),async function (req, res,next){
+  console.log("req.body is :",JSON.stringify(req.body) )
+  const filename=(req.body.name).replaceAll(" ", "")
+  pool.query('INSERT INTO products(name,price,image_source,brand,type,Description) VALUES($1,$2,$3,$4,$5,$6)',[req.body.name, req.body.price,filename,req.body.brand,req.body.type,req.body.description])
+ 
   try {
-    
-    cloudinary.uploader.upload(req._parts[0].file, {
-    asset_folder: 'products_image',
-    resource_type: 'image'})
-  .then(console.log);
-    // Send the Cloudinary URL in the response
-    res.json({ imageUrl: result.secure_url });
+    const result= await cloudinary.uploader.upload(req.body.file,{public_id:filename})
+    res.send(result)
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error uploading image to Cloudinary' });
@@ -145,15 +144,15 @@ app.post('/addProduct',upload.single("file"),async function (req, res,next){
 )
 
 
-app.delete('/DelTodayLoanData/:nom', (req, res)=>{
-  pool.query('DELETE FROM loan_today WHERE nom =$1',[req.params.nom]).catch((error)=>{console.error})
+app.delete('/DelTodayLoanData/:id', (req, res)=>{
+  pool.query('DELETE FROM loan_today WHERE id =$1',[req.params.id]).then(result=>res.send(result)).catch((error)=>{console.error})
   console.log(" The params are: ",req.params)
 }
 )
 
 app.delete('/deleteProduct/:nom', (req, res)=>{
-  pool.query('DELETE FROM products WHERE name =$1',[req.params.nom]).catch((error)=>{console.error})
-  console.log("Deleted one is:",req.params.nom)
+  pool.query('DELETE FROM products WHERE id =$1',[req.params.id]).catch((error)=>{console.error})
+  console.log("Deleted one is:",req.params.id)
 })
 
 app.get('/printpdf', async (req, res)=>{
