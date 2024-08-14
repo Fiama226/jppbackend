@@ -126,10 +126,11 @@ app.post('/commandes', (req, res)=>{
 app.post('/addProduct',async function (req, res,next){
   console.log("req.body is :",JSON.stringify(req.body) )
   const filename=(req.body.name).replaceAll(" ", "")
-  pool.query('INSERT INTO products(name,price,image_source,brand,type,Description) VALUES($1,$2,$3,$4,$5,$6)',[req.body.name, req.body.price,filename,req.body.brand,req.body.type,req.body.description])
+  const filenametodisplay=filename+"jpg"
+  pool.query('INSERT INTO products(name,price,image_source,brand,type,Description) VALUES($1,$2,$3,$4,$5,$6)',[req.body.name, req.body.price,filenametodisplay,req.body.brand,req.body.type,req.body.description])
  
   try {
-    const result= await cloudinary.uploader.upload(req.body.file,{public_id:filename})
+    const result= await cloudinary.uploader.upload(req.body.file,{asset_folder: 'products_image',resource_type: 'image',public_id:filename})
     res.send(result)
 
   } catch (error) {
@@ -155,7 +156,7 @@ app.delete('/deleteProduct/:nom', (req, res)=>{
 app.get('/printpdf', async (req, res)=>{
   const dataOfReceipt=req.query.data
   
-  pool.query(' SELECT * FROM commandes WHERE nomduclient = $1',[dataOfReceipt]).then((result) => {
+  pool.query(' SELECT * FROM commandes WHERE id = $1',[dataOfReceipt]).then((result) => {
     console.log("the searched data on db is:",result.rows)
     const dataFromDataBase=result.rows
 
@@ -165,13 +166,12 @@ app.get('/printpdf', async (req, res)=>{
         args: [
           "--disable-setuid-sandbox",
           "--no-sandbox",
-          "--single-process",
-          "--no-zygote",
         ],
         executablePath:
           process.env.NODE_ENV === "production"
             ? process.env.PUPPETEER_EXECUTABLE_PATH
             : puppeteer.executablePath(),
+            
       });
     const page = await browser.newPage();
 
@@ -184,10 +184,9 @@ app.get('/printpdf', async (req, res)=>{
 
     await page.goto(`https://fiama226.github.io/receipt_static_website/?data=${JSON.stringify(dataFromDataBase)}`, { waitUntil: 'networkidle0' });
     console.log("the link to the static website is :",`https://fiama226.github.io/receipt_static_website/?data=${JSON.stringify(dataFromDataBase)}`)
+    await page.waitForSelector('body');
 
     
-
-    //await new Promise(resolve => setTimeout(resolve, 5000));
     const generatedPdf = await page.pdf({ path: 'output.pdf', format: 'A4',printBackground: true });
     await browser.close();
     res.setHeader('Content-Type', 'application/pdf');
