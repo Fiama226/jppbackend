@@ -4,7 +4,6 @@ pdf = require('express-pdf');
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const { Pool } = require('pg');
-const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 cloudinary.config({
   secure: true,
@@ -23,8 +22,6 @@ app.use(cors());
 app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(pdf);
-const storage = multer.memoryStorage() 
-const upload = multer()
 const pool = new Pool({
  // user: process.env.DB_USER,
   //host:process.env.DB_HOST,
@@ -126,7 +123,7 @@ app.post('/commandes', (req, res)=>{
     }
 })
 
-app.post('/addProduct', upload.none(),async function (req, res,next){
+app.post('/addProduct',async function (req, res,next){
   console.log("req.body is :",JSON.stringify(req.body) )
   const filename=(req.body.name).replaceAll(" ", "")
   pool.query('INSERT INTO products(name,price,image_source,brand,type,Description) VALUES($1,$2,$3,$4,$5,$6)',[req.body.name, req.body.price,filename,req.body.brand,req.body.type,req.body.description])
