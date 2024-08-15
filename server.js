@@ -14,6 +14,10 @@ cloudinary.config({
 require('dotenv').config()
 //const ADD_Product_Backend=require('./Add_Product_Backend')
 const { Connector } = require('@google-cloud/cloud-sql-connector');
+const multer = require('multer')
+const storage = multer.memoryStorage()  // store image in memory
+const upload = multer({storage:storage})
+
 var cors = require('cors');
 const PORT = process.env.PORT || 8080
 const bodyParser = require('body-parser');
@@ -123,10 +127,11 @@ app.post('/commandes', (req, res)=>{
     }
 })
 
-app.post('/addProduct',async function (req, res,next){
+app.post('/addProduct',upload.single('file'),async function (req, res,next){
+  console.log("the dir name is :",__dirname)
   console.log("req.body is :",JSON.stringify(req.body) )
   const filename=(req.body.name).replaceAll(" ", "")
-  const filenametodisplay=filename+"jpg"
+  const filenametodisplay=filename+".jpg"
   pool.query('INSERT INTO products(name,price,image_source,brand,type,Description) VALUES($1,$2,$3,$4,$5,$6)',[req.body.name, req.body.price,filenametodisplay,req.body.brand,req.body.type,req.body.description])
  
   try {
