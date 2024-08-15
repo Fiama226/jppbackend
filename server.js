@@ -120,7 +120,7 @@ app.post('/commandes', (req, res)=>{
   console.log(req.body)
 
   try {
-  pool.query('INSERT INTO commandes(nomduclient,numerodefacture,date,modedepayement,montantdelacommande,villeduclient,numerodetelephoneduclient,detailsdelafacture) VALUES($1, $2,$3, $4,$5, $6,$7, $8)',[req.body.nom,req.body.numerodefacture,req.body.dateAndTime,req.body.modedepayment,req.body.totalamountoforder,req.body.ville,req.body.numero,req.body.cart_products]).then(result=>{console.log(result),res.send(req.body)})
+  pool.query('INSERT INTO commandes(nomduclient,numerodefacture,date,modedepayement,montantdelacommande,villeduclient,numerodetelephoneduclient,detailsdelafacture) VALUES($1, $2,$3, $4,$5, $6,$7, $8)',[req.body.nom,req.body.numerodefacture,req.body.dateAndTime,req.body.selectedValue,req.body.totalamountoforder,req.body.ville,req.body.numero,req.body.cart_products]).then(result=>{console.log(result),res.send(req.body)})
      }catch (error) {
       console.error('Error executing query:', error);
       res.status(500).send('Erreur lors de l\'insertion de la commande'); // Respond with an error message
