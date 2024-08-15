@@ -15,12 +15,21 @@ require('dotenv').config()
 //const ADD_Product_Backend=require('./Add_Product_Backend')
 const { Connector } = require('@google-cloud/cloud-sql-connector');
 const multer = require('multer')
-const storage = multer.memoryStorage()  // store image in memory
-const upload = multer({storage:storage})
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.resolve(__dirname, 'uploads')); // Save to the 'uploads' folder
+  },
+  filename: (req, file, cb) => {
+      cb(null,file.originalname.replace(" ", ""));
+
+  }
+});
+const upload = multer({ storage: storage });
 
 var cors = require('cors');
 const PORT = process.env.PORT || 8080
 const bodyParser = require('body-parser');
+const { Console } = require('console');
 const app = express()
 app.use(cors());
 app.use(express.urlencoded({ extended: false }));
@@ -54,15 +63,6 @@ pool.connect((err, client, done) => {
 app.get('/',(req, res) => { 
       res.status(200).send("HI , i am the home page , made by landry")
 })
-
-
-//pool = new Pool({
-  //user: 'postgres',
-  //host: 'db',
-  //password: 'root',
-  //port: 5432,
-  //database: 'postgres',
-//})
 
 app.get('/commandes',(req, res) => { 
   pool.query(' SELECT * FROM commandes').then((result) => {
@@ -129,14 +129,16 @@ app.post('/commandes', (req, res)=>{
 
 app.post('/addProduct',upload.single('file'),async function (req, res,next){
   console.log("the dir name is :",__dirname)
-  console.log("req.body is :",JSON.stringify(req.body) )
+  console.log("req.file is :",req.file)
+  console.log("req.body is :",req.body)
   const filename=(req.body.name).replaceAll(" ", "")
   const filenametodisplay=filename+".jpg"
   pool.query('INSERT INTO products(name,price,image_source,brand,type,Description) VALUES($1,$2,$3,$4,$5,$6)',[req.body.name, req.body.price,filenametodisplay,req.body.brand,req.body.type,req.body.description])
  
   try {
-    const result= await cloudinary.uploader.upload(req.body.file,{asset_folder: 'products_image',resource_type: 'image',public_id:filename})
+    const result= await cloudinary.uploader.upload(req.file.path,{asset_folder: 'products_image',resource_type: 'image',public_id:"products_image/"+filename})
     res.send(result)
+
 
   } catch (error) {
     console.error(error);
@@ -160,6 +162,7 @@ app.delete('/deleteProduct/:nom', (req, res)=>{
 
 app.get('/printpdf', async (req, res)=>{
   const dataOfReceipt=req.query.data
+  console.log("the params are: ",req.query)
   
   pool.query(' SELECT * FROM commandes WHERE id = $1',[dataOfReceipt]).then((result) => {
     console.log("the searched data on db is:",result.rows)
@@ -216,6 +219,7 @@ app.get('/printpdf', async (req, res)=>{
   console.log("the params are:",dataOfReceipt)    
 console.log("printpdf hitted")
 })
+
 
 app.listen(PORT, () => {
   console.log('server is listening on port: ',PORT)
