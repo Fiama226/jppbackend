@@ -155,8 +155,8 @@ app.delete('/DelTodayLoanData/:id', (req, res)=>{
 }
 )
 
-app.delete('/deleteProduct/:nom', (req, res)=>{
-  pool.query('DELETE FROM products WHERE id =$1',[req.params.id]).catch((error)=>{console.error})
+app.delete('/deleteProduct/:id', (req, res)=>{
+  pool.query('DELETE FROM products WHERE id =$1',[req.params.id]).then(result=>res.send(result)).catch((error)=>{console.error})
   console.log("Deleted one is:",req.params.id)
 })
 
